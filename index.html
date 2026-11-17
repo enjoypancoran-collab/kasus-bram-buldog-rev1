@@ -1,0 +1,82 @@
+<!doctype html>
+<html lang="id">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>Kasus Bram Buldog: Menjadi Pengacara PTP Kemenkeu di Sidang Kenaikan Grading</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link href="https://fonts.googleapis.com/css2?family=Playfair+Display:wght@700;900&family=Inter:wght@400;600;800&display=swap" rel="stylesheet">
+<link rel="stylesheet" href="css/style.css">
+<link rel="icon" href="data:image/svg+xml,<svg xmlns=%22http://www.w3.org/2000/svg%22 viewBox=%220 0 100 100%22><text y=%22.9em%22 font-size=%2290%22>⚖️</text></svg>">
+<script type="importmap">{ "imports": { "three": "./vendor/three.module.js", "three/addons/": "./vendor/addons/" } }</script>
+</head>
+<body>
+<div id="stage"></div>
+
+<!-- Layar awal -->
+<section id="title" class="screen">
+  <div class="title-inner">
+    <div class="kicker">PTP Kemenkeu mempersembahkan</div>
+    <h1>Kasus <span>Bram Buldog</span></h1>
+    <p class="subtitle">Menjadi Pengacara PTP Kemenkeu di Sidang Kenaikan Grading</p>
+    <div class="names-panel">
+      <label for="names">Nama peserta yang hadir <small>(satu nama per baris)</small></label>
+      <textarea id="names" spellcheck="false" placeholder="Contoh:&#10;Andi&#10;Budi&#10;Citra"></textarea>
+      <div class="names-foot"><span id="nameCount">0 nama</span><button id="playBtn" class="btn gold" disabled>Play ▶</button></div>
+      <div class="hint">Butuh minimal 5 nama. Setiap peserta memilih satu kali lewat undian SPIN.</div>
+    </div>
+  </div>
+</section>
+
+<!-- HUD -->
+<div id="hud" class="hidden">
+  <div id="hudLeft"><span id="hudRound">Putaran 1</span><span id="hudFloor"></span></div>
+  <button id="bagBtn" class="bag"><span class="bag-ico">💼</span> Tas Berkas <b id="bagCount">0/7</b></button>
+  <div id="bagList" class="hidden"></div>
+</div>
+<div id="controls" class="hidden">
+  <button id="pauseBtn" title="Jeda (P)">⏸ Jeda</button>
+  <button id="skipBtn" title="Lewati adegan">⏭ Lewati adegan</button>
+  <button id="muteBtn" title="Suara">🔊</button>
+  <button id="fsBtn" title="Layar penuh">⛶</button>
+</div>
+
+<!-- Kartu lantai -->
+<div id="floorCard" class="hidden"><div class="fc-num"></div><div class="fc-title"></div></div>
+
+<!-- Dialog -->
+<div id="dialog" class="hidden"><div id="dlgName"></div><div id="dlgText"></div><div class="dlg-next">klik / spasi ▸</div></div>
+
+<!-- Pilihan + undian -->
+<div id="choice" class="hidden">
+  <div id="spinBox">
+    <div class="spin-label">Siapa yang memilih?</div>
+    <div class="reel"><div id="reelList"></div><div class="reel-mark"></div></div>
+    <div id="spinResult"></div>
+    <div class="spin-actions"><button id="spinBtn" class="btn gold">SPIN 🎲</button><button id="refillBtn" class="btn ghost hidden">Isi ulang daftar</button><span id="poolCount"></span></div>
+  </div>
+  <div id="cards"></div>
+</div>
+
+<!-- Putusan -->
+<div id="pausedTag" class="hidden">⏸ JEDA — tekan P atau tombol Lanjut</div>
+<div id="stamp" class="hidden"><div id="stampText"></div></div>
+
+<!-- Rekap -->
+<section id="recap" class="screen hidden">
+  <div class="recap-inner">
+    <h2 id="recapTitle"></h2>
+    <div id="recapMeter"></div>
+    <ol id="recapList"></ol>
+    <div id="recapRule"></div>
+    <div id="recapQ"></div>
+    <div id="recapCredits"></div>
+    <div class="recap-actions"><button id="ruleBtn" class="btn ghost">Ungkap Aturan</button><button id="againBtn" class="btn gold">Main Lagi ▶</button><button id="homeBtn" class="btn ghost">Layar Awal</button></div>
+  </div>
+</section>
+
+<div id="loading" class="screen"><div class="load-inner"><div class="load-title">Menyiapkan ruang sidang…</div><div class="load-bar"><div id="loadFill"></div></div></div></div>
+
+<script type="module" src="js/main.js"></script>
+</body>
+</html>
