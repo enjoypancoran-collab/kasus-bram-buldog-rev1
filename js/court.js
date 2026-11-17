@@ -13,9 +13,9 @@ export function aptpi() {
   // papan tulis
   const wbTex = canvasTexture(1024, 512, (x, W, H) => {
     x.fillStyle = '#fbfbf8'; x.fillRect(0, 0, W, H);
-    x.strokeStyle = '#d33'; x.lineWidth = 9; for (let k = 0; k < 4; k++) { x.beginPath(); x.ellipse(W / 2, H / 2, 300 + k * 18, 120 + k * 12, k * 0.05, 0, 7); x.stroke(); }
-    x.fillStyle = '#1b3a8a'; x.font = '900 130px Inter'; x.textAlign = 'center'; x.textBaseline = 'middle'; x.fillText('GRADING 12?!', W / 2, H / 2);
-    x.font = '700 40px Inter'; x.fillStyle = '#333'; x.fillText('naik?? naik?? NAIK!!', W / 2, H - 50);
+    x.strokeStyle = '#d33'; x.lineWidth = 9; for (let k = 0; k < 4; k++) { x.beginPath(); x.ellipse(W / 2, H / 2 - 20, 440 + k * 14, 170 + k * 10, k * 0.04, 0, 7); x.stroke(); }
+    x.fillStyle = '#1b3a8a'; x.font = '900 112px Inter'; x.textAlign = 'center'; x.textBaseline = 'middle'; x.fillText('GRADING', W / 2, H / 2 - 80); x.fillStyle = '#c42828'; x.font = '900 92px Inter'; x.fillText('BELUM SESUAI !!!', W / 2, H / 2 + 40);
+    x.font = '700 40px Inter'; x.fillStyle = '#333'; x.fillText('risiko PTP > Pranata?? cek lagi!!', W / 2, H - 40);
   });
   const wb = new THREE.Mesh(new THREE.PlaneGeometry(3.2, 1.6), toon('#ffffff', { map: wbTex })); wb.position.set(-1.2, 1.8, -3.95); g.add(wb);
   B(g, 3.3, 1.7, 0.05, '#bbb', [-1.2, 1.8, -3.99]);
