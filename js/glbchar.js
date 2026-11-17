@@ -197,6 +197,7 @@ export class GLBCharacter {
   update(dt) {
     this.t += dt;
     const st = this.state;
+    if (this.walkTarget && window.__ff) { const wt = this.walkTarget; this.root.position.x = wt.x; this.root.position.z = wt.z; this.walkTarget = null; st.walk = 0; wt.res(); }
     if (this.walkTarget) {
       const wt = this.walkTarget, pos = this.root.position;
       const dx = wt.x - pos.x, dz = wt.z - pos.z, d = Math.hypot(dx, dz);

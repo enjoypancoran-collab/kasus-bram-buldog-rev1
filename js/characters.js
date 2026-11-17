@@ -364,6 +364,7 @@ export class Character {
     return new Promise(res => { this.walkTarget = { x, z, speed: run ? speed * 2.1 : speed, res, run }; });
   }
   update(dt) {
+    if (this.walkTarget && window.__ff) { const wt = this.walkTarget; this.root.position.x = wt.x; this.root.position.z = wt.z; this.walkTarget = null; wt.res?.(); }
     this.t += dt;
     const st = this.state, t = this.t;
     // berjalan

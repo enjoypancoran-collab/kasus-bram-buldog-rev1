@@ -26,6 +26,7 @@ export const ui = {
   },
   onAdvance(fn) { advanceFn = fn; },
   onSkipScene(fn) { skipSceneFn = fn; },
+  setSkip(on) { const b = $('skipBtn'); b.disabled = !on; b.style.opacity = on ? '' : '0.35'; b.style.cursor = on ? '' : 'not-allowed'; },
   progress(k) { $('loadFill').style.width = Math.round(k * 100) + '%'; },
   doneLoading() { $('loading').classList.add('hidden'); },
   titleScreen() {

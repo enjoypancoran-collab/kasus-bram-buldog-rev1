@@ -12,13 +12,15 @@ const MUSIC = ['jazz', 'office', 'urgent', 'court', 'win', 'sad', 'title'];
 const state = { round: 1, picks: [], last: null };
 
 // ---------- pemutar beat dialog ----------
-let skipLine = null, skipScene = false;
+let skipLine = null, skipScene = false, skipAllowed = true;
+const allowSkip = (on) => { skipAllowed = on; ui.setSkip(on); skipScene = false; E.setFF(false); if (on && new URLSearchParams(location.search).has('autoskip')) setTimeout(() => document.getElementById('skipBtn').click(), 2500); };
 ui.onAdvance(() => { if (skipLine) skipLine(); });
-ui.onSkipScene(() => { skipScene = true; if (skipLine) skipLine(); });
+ui.onSkipScene(() => { if (!skipAllowed) return; skipScene = true; E.setFF(true); if (skipLine) skipLine(); });
 
 function headPos(c) { const v = new THREE.Vector3(); c.head.getWorldPosition(v); return v; }
 async function play(beats, ctx = {}) {
   for (const b of beats) {
+    if (b.keep) allowSkip(false); // kalimat penutup Bram selalu diucapkan
     const who = ctx.cast?.[b.s] || E.chars[b.s];
     const present = who && who.root.parent;
     let camDone = false;
@@ -85,7 +87,7 @@ async function titleLoop() {
 }
 
 async function playRound() {
-  state.picks = []; ui.bag([]); skipScene = false;
+  state.picks = []; ui.bag([]); allowSkip(true);
   const JUMP = new URLSearchParams(location.search).get('jump');
   if (JUMP === 'court') {
     const pk = (new URLSearchParams(location.search).get('pick') || 'k,a,k,a,a,k,a').split(',');
@@ -94,9 +96,9 @@ async function playRound() {
   } else {
     const from = JUMP && JUMP[0] === 'f' ? +JUMP.slice(1) : 1;
     if (from === 1) { if (state.round === 1) await prolog(); else await round2Intro(); }
-    for (const f of S.FLOORS) { if (f.n < from) continue; skipScene = false; state.picks.push(await playFloor(f)); ui.bag(state.picks); }
+    for (const f of S.FLOORS) { if (f.n < from) continue; allowSkip(true); state.picks.push(await playFloor(f)); ui.bag(state.picks); }
   }
-  skipScene = false;
+  allowSkip(true);
   await toCourt();
   const verdict = await trial();
   ui.setFloor('');
@@ -322,6 +324,7 @@ async function trial() {
     await play([rr], ctx);
   }
   const verdict = S.verdictFor(arsitek);
+  allowSkip(false); // musyawarah & putusan hakim selalu diputar
   await play(S.DELIB, ctx);
   await E.wait(1.0);
   ct.lightZone({ A: 0, B: 1, C: 2, D: 3 }[verdict]);

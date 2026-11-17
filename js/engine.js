@@ -38,7 +38,7 @@ export const E = {
   tick(dt) {
     this.time = (this.time || 0) + dt;
     for (let i = this.tweens.length - 1; i >= 0; i--) {
-      const tw = this.tweens[i]; tw.t += dt;
+      const tw = this.tweens[i]; tw.t += this.ff ? 1e9 : dt;
       const k = Math.min(1, tw.t / tw.d), e = tw.ease(k);
       tw.fn(e, k);
       if (k >= 1) { this.tweens.splice(i, 1); tw.res(); }
@@ -53,8 +53,9 @@ export const E = {
       this.camera.position.x += (Math.random() - 0.5) * a; this.camera.position.y += (Math.random() - 0.5) * a;
     }
   },
-  tween(d, fn, ease = easeInOut) { return new Promise(res => this.tweens.push({ t: 0, d: Math.max(0.001, d), fn, ease, res })); },
-  wait(s) { return new Promise(r => setTimeout(r, s * 1000)); },
+  tween(d, fn, ease = easeInOut) { if (this.ff) { fn(1); return Promise.resolve(); } return new Promise(res => this.tweens.push({ t: 0, d: Math.max(0.001, d), fn, ease, res })); },
+  setFF(on) { this.ff = on; window.__ff = on; },
+  wait(s) { return new Promise(r => { if (this.ff) return r(); const t0 = performance.now(); const chk = () => { if (this.ff || performance.now() - t0 >= s * 1000) r(); else setTimeout(chk, 40); }; setTimeout(chk, Math.min(40, s * 1000)); }); },
   shake(a = 0.15, t = 0.6) { this.shakeA = a; this.shakeT = t; },
   // kamera
   cut(pos, look) { this.follow = null; this.camera.position.set(...pos); this.look.set(...look); this.lookCur.copy(this.look); },

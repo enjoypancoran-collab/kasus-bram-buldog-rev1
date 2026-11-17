@@ -61,6 +61,7 @@ export const audio = {
   sfx(name, vol = 0.8) {
     const src = BASE + 'sfx/' + name + '.mp3';
     const base = this.get(src);
+    if (window.__ff) return base.cloneNode();
     const a = base.cloneNode(); a.volume = muted ? 0 : vol;
     a.play().catch(() => {});
     return a;
