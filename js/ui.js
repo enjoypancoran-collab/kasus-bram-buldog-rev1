@@ -82,8 +82,10 @@ export const ui = {
       let picker = null;
       this.setupSpin((name) => { picker = name; els.forEach(e => e.classList.remove('locked')); const want = Q.get('pick'); let i = Math.random() < 0.5 ? 0 : 1; if (want) { const t = want.split(',')[(window.__floorN||1)-1] || want[0]; i = cards.findIndex(c => c.type === (t === 'a' ? 'arsitek' : 'karya')); } autoDelay(() => els[i].click(), 500); });
       els.forEach((el, i) => el.onclick = () => {
-        if (!picker) return;
+        if (!picker || this.spinning) return;
         audio.sfx('pop', 0.7);
+        const pi = this.pool.indexOf(picker); if (pi >= 0) this.pool.splice(pi, 1);
+        $('spinBtn').classList.add('hidden'); $('refillBtn').classList.add('hidden');
         el.classList.add('chosen'); els.forEach((o, j) => j !== i && o.classList.add('dropped'));
         setTimeout(() => { box.classList.add('hidden'); res({ card: cards[i], picker }); }, 900);
       });
@@ -104,21 +106,23 @@ export const ui = {
   setupSpin(onPicked, label = 'Siapa yang memilih?') {
     document.querySelector('.spin-label').textContent = label;
     const btn = $('spinBtn'), refill = $('refillBtn'), list = $('reelList');
-    $('spinResult').textContent = '';
+    $('spinResult').textContent = ''; this.lastSpun = null; this.spinning = false;
     const showPool = () => {
-      $('poolCount').textContent = `${this.pool.length} nama tersisa`;
-      refill.classList.toggle('hidden', this.pool.length > 0);
+      $('poolCount').textContent = this.pool.length ? `${this.pool.length} nama belum diundi` : 'Semua nama sudah memilih';
+      refill.classList.remove('hidden');
       btn.disabled = this.pool.length === 0;
     };
+    btn.textContent = 'SPIN 🎲';
     list.style.transition = 'none'; list.style.transform = 'translateY(0)';
     list.innerHTML = '<div>? ? ?</div>';
     btn.classList.remove('hidden'); showPool();
     autoDelay(() => btn.click(), 500);
-    refill.onclick = () => { this.pool = [...this.allNames]; showPool(); };
+    refill.onclick = () => { if (this.spinning) return; this.pool = [...this.allNames]; showPool(); audio.sfx('pop', 0.6); };
     btn.onclick = () => {
-      if (!this.pool.length) return;
-      btn.disabled = true;
-      const idx = Math.floor(Math.random() * this.pool.length), name = this.pool[idx];
+      if (!this.pool.length || this.spinning) return;
+      this.spinning = true; btn.disabled = true; refill.disabled = true;
+      const cand = this.pool.length > 1 && this.lastSpun ? this.pool.filter(n => n !== this.lastSpun) : this.pool;
+      const name = cand[Math.floor(Math.random() * cand.length)]; this.lastSpun = name;
       const seq = []; const src = this.allNames.length ? this.allNames : this.pool;
       for (let i = 0; i < 34; i++) seq.push(src[Math.floor(Math.random() * src.length)]);
       seq.push(name);
@@ -129,10 +133,9 @@ export const ui = {
       audio.sfx('spin', 0.6);
       setTimeout(() => {
         audio.sfx('ding', 0.8);
-        this.pool.splice(idx, 1);
+        this.spinning = false; refill.disabled = false;
         $('spinResult').innerHTML = `Giliran <b>${esc(name)}</b> — silakan pilih!`;
-        btn.classList.add('hidden'); refill.classList.add('hidden');
-        $('poolCount').textContent = `${this.pool.length} nama tersisa`;
+        btn.textContent = 'SPIN ULANG 🎲'; showPool();
         onPicked(name);
       }, 3300);
     };
@@ -149,14 +152,13 @@ export const ui = {
       const k = picks.length - arsitek;
       $('recapMeter').innerHTML = `<div class="meterbar"><div style="flex:${Math.max(k, .001)};background:var(--karya)">${k ? 'Karya ' + k : ''}</div><div style="flex:${Math.max(arsitek, .001)};background:var(--arsitek)">${arsitek ? 'Arsitek ' + arsitek : ''}</div></div><div class="meter-legend"><span>Bukti karya: ${k}</span><span>Bukti arsitek: ${arsitek}</span></div>`;
       $('recapList').innerHTML = picks.map((p, i) => `<li><span class="n">${i + 1}</span><span class="t">${p.title}<br><span class="who">Lantai ${p.floor} · dari ${p.by} · dipilih oleh ${esc(p.picker)}</span></span><span class="badge ${p.type}">${p.type === 'karya' ? 'Karya' : 'Arsitek'}</span></li>`).join('');
-      const RULE = '<b>Aturan sidang:</b> Bukti arsitek menunjukkan beban dan risiko jabatan. Bukti karya menunjukkan kemampuan mewujudkan. Komposisi terbaik: <b>3–4 bukti arsitek dan 1–2 bukti karya.</b>';
-      const final = this.pool.length < 5;
-      $('ruleBtn').classList.toggle('hidden', final);
-      $('ruleBtn').onclick = () => { $('recapRule').innerHTML = RULE; $('ruleBtn').classList.add('hidden'); };
-      $('againBtn').textContent = final ? 'Main Lagi (isi ulang nama) ▶' : 'Main Lagi ▶';
-      $('homeBtn').textContent = final ? 'Selesai' : 'Layar Awal';
-      if (final) {
-        $('recapRule').innerHTML = RULE;
+      const win = verdict === 'C';
+      $('ruleBtn').classList.add('hidden');
+      $('againBtn').classList.toggle('hidden', win);
+      $('againBtn').textContent = 'Coba Lagi ▶';
+      $('homeBtn').textContent = win ? 'Selesai' : 'Layar Awal';
+      if (win) {
+        $('recapRule').innerHTML = '';
         $('recapQ').innerHTML = '<b>Diskusi:</b> Dari bukti arsitek yang dibawa Bram, berapa yang benar-benar sudah dimiliki PTP Kemenkeu hari ini? Bukti arsitek mana yang paling mungkin mulai kita bangun tahun depan?';
         $('recapCredits').innerHTML = `<b>Tim Pembela PTP</b><br>${this.allNames.map(esc).join(' · ')}`;
       } else {
@@ -164,10 +166,10 @@ export const ui = {
         $('recapQ').innerHTML = '<b>Diskusi:</b> Menurut kalian, kenapa hakim memutus seperti itu?';
         $('recapCredits').innerHTML = '';
       }
-      $('againBtn').onclick = () => { if (final) this.pool = [...this.allNames]; $('recap').classList.add('hidden'); res('again'); };
+      $('againBtn').onclick = () => { $('recap').classList.add('hidden'); res('again'); };
       $('homeBtn').onclick = () => { $('recap').classList.add('hidden'); res('home'); };
       window.__recap = (window.__recap || 0) + 1;
-      autoDelay(() => (window.__recap >= (+Q.get('rounds') || 2) ? $('homeBtn') : $('againBtn')).click(), 2500);
+      autoDelay(() => (win || window.__recap >= (+Q.get('rounds') || 2) ? $('homeBtn') : $('againBtn')).click(), 2500);
     });
   },
 };

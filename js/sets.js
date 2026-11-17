@@ -115,8 +115,8 @@ function lobby() {
       { t: 'Unit minta pelatihan: "pegawai sering salah input"' },
       { t: 'Analisis akar masalah: pengetahuan? prosedur? aplikasi?' },
       { t: 'Ditemukan: prosedur membingungkan', stage: 1 },
-      { t: 'Rekomendasi: perbaiki SOP + panduan kerja 1 halaman', stage: 1, hl: 1 },
-      { t: 'Pelatihan TIDAK diperlukan', stage: 1, hl: 1 },
+      { t: 'Rekomendasi: Microlearning + Panduan Kerja 1 Halaman', stage: 1, hl: 1 },
+      { t: 'Pelatihan Klasikal Hanya 2 Hari', stage: 1, hl: 1 },
     ] }, st)), side);
   return {
     g, bg: new THREE.Color('#e8dfcf'), holoK, holoA,

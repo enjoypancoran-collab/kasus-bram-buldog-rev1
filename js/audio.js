@@ -5,6 +5,15 @@ let manifest = {};
 const cache = new Map();
 let music = null, musicName = null, muted = false;
 let current = null;
+let actx = null, analyser = null, abuf = null;
+const srcMap = new WeakMap();
+function hookAnalyser(a) {
+  try {
+    if (!actx) { actx = new (window.AudioContext || window.webkitAudioContext)(); analyser = actx.createAnalyser(); analyser.fftSize = 1024; abuf = new Uint8Array(analyser.fftSize); analyser.connect(actx.destination); }
+    if (actx.state === 'suspended') actx.resume();
+    if (!srcMap.has(a)) { const s = actx.createMediaElementSource(a); s.connect(analyser); srcMap.set(a, s); }
+  } catch (e) { /* tanpa analyser: mulut memakai gerak acak */ }
+}
 export const audio = {
   async init() {
     try { manifest = await (await fetch(BASE + 'voice/manifest.json')).json(); } catch { manifest = {}; }
@@ -28,6 +37,7 @@ export const audio = {
     if (FAST) return new Promise(r => setTimeout(r, 120));
     return new Promise(res => {
       const a = this.get(BASE + 'voice/' + id + '.mp3');
+      hookAnalyser(a);
       a.currentTime = 0; a.volume = muted ? 0 : 1;
       let done = false;
       const fin = () => { if (done) return; done = true; a.onended = null; clearTimeout(guard); current = null; res(); };
@@ -37,6 +47,14 @@ export const audio = {
       if (onSkipReg) onSkipReg(() => { a.pause(); fin(); });
       a.play().catch(() => setTimeout(fin, this.duration(id) * 1000));
     });
+  },
+  // keras suara dialog yang sedang diputar (0..1), atau -1 bila tidak bisa diukur
+  level() {
+    if (!current || current.paused) return 0;
+    if (!analyser || !srcMap.has(current.a) || actx.state !== 'running') return -1;
+    analyser.getByteTimeDomainData(abuf);
+    let s = 0; for (let i = 0; i < abuf.length; i++) { const v = (abuf[i] - 128) / 128; s += v * v; }
+    return Math.min(1, Math.sqrt(s / abuf.length) * 5);
   },
   pauseVoice(on) { if (current) { if (on) current.a.pause(); else current.a.play().catch(() => {}); current.paused = on; } },
   stopVoice() { if (current) { current.a.pause(); current.fin(); } },

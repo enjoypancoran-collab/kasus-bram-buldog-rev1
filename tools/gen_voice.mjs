@@ -13,7 +13,7 @@ const SETTINGS = {
   tutor: { stability: 0.5, similarity_boost: 0.7 },
 };
 // Singkatan dibaca huruf demi huruf ala Indonesia
-const ABBR = { PTP: 'pe te pe', SDM: 'es de em', APBN: 'a pe be en', RKA: 'er ka a', LMS: 'el em es', HP: 'ha pe', AI: 'e ai', PHP: 'pe ha pe', APTPI: 'a pe te pe i' };
+const ABBR = { PTP: 'pe-te-pe', SDM: 'es de em', APBN: 'a pe be en', RKA: 'er ka a', LMS: 'el em es', HP: 'ha pe', AI: 'eyai', PHP: 'pe ha pe', APTPI: 'a pe te pe i' };
 export function autoSay(t) {
   let s = t.replace(/\b(PTP|SDM|APBN|RKA|LMS|HP|AI|PHP|APTPI)\b/g, m => ABBR[m]);
   s = s.replace(/\b2019\b/g, 'dua ribu sembilan belas').replace(/level 4/g, 'level empat').replace(/24 Jam/g, 'dua puluh empat jam');

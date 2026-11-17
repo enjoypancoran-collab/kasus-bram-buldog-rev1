@@ -31,12 +31,14 @@ async function play(beats, ctx = {}) {
     }
     if (present) { const hp = headPos(who); for (const c of Object.values(E.chars)) if (c !== who && c.root.parent) c.lookAtPoint(hp); who.targetYaw = 0; }
     if (who) who.setTalk(true);
+    if (who && b.gest) who.gesture(b.gest, b.gestDur || 2.8);
     ui.say(b.s, S.CAST[b.s].name, b.t);
     audio.duck(true);
     await audio.voice(b.id, (fn) => { skipLine = fn; });
     skipLine = null;
     if (who) who.setTalk(false);
     audio.duck(false);
+    for (const a of b.after || []) if (!skipScene) await ctx.actions?.[a]?.(b);
     if (!skipScene) await E.wait(0.18);
     while (ui.paused) await E.wait(0.2);
   }
@@ -127,7 +129,7 @@ async function prolog() {
   const ctx = {
     actions: {
       handMap: () => { wendi.gesture('give', 1.6); E.tween(0.8, e => { set.map.position.set(0.4 - e * 1.2, 0.82 + Math.sin(e * Math.PI) * 0.6, -1.0 + e * 1.4); }); setTimeout(() => { set.map.visible = false; }, 900); },
-      thunder: () => { set.thunder(); wendi.gesture('facepalm', 1.4); },
+      thunder: async () => { wendi.gesture('facepalm', 1.4); set.thunder(); await E.wait(3.4); },
       liftBag: () => { bram.gesture('lift', 1.8); },
     },
     cams: { bramCloseFront: () => { const p = bram.root.position; E.camTo([p.x + 0.2, 1.75, p.z + 1.3], [p.x, 1.6, p.z], 0.8); } },
@@ -155,7 +157,7 @@ async function round2Intro() {
   E.cut([0.4, 1.8, 4.2], [-1, 1.3, 0]);
   await E.tween(0.4, e => set.door.rotation.y = -e * 1.4);
   await wendi.walkTo(-1.0, 0.8, 1.7, true); wendi.faceTo(0.2, 0.6); bram.faceTo(-1.0, 0.8);
-  await play(state.round >= 3 ? (state.last === 'C' ? S.ROUND3_WIN : S.ROUND3_FAIL) : (state.last === 'C' ? S.ROUND2_WIN : S.ROUND2_FAIL));
+  await play(state.round >= 3 ? S.ROUND3_FAIL : S.ROUND2_FAIL);
 }
 
 // ---------- lantai ----------
@@ -287,6 +289,7 @@ async function trial() {
       hakimLean: () => { hakim.gesture('point', 2); camHakim(); return 'cam'; },
       liftBag: () => { bram.gesture('lift', 1.6); },
       rise: () => { riseBench(); return 'cam'; },
+      thunder: async () => { audio.sfx('thunder', 0.9); E.shake(0.1, 0.6); if (ct.thunder) ct.thunder(); await E.wait(3.4); },
       sad: () => { setTimeout(() => { audio.music('sad', 0.4); audio.sfx('aww', 0.8); ct.crowd.forEach(c => c.gesture('sad', 6)); wendi.gesture('sad', 6); bram.gesture('sad', 3); ct.signs.forEach(s => E.tween(1.2, e => s.rotation.x = -e * 1.2)); E.camTo([0.5, 3.0, -2.6], [0, 1.4, 4.5], 1.6); }, 900); },
       celebrate: () => { setTimeout(() => { audio.music('win', 0.5); audio.sfx('cheer', 0.9); audio.sfx('confetti', 0.8); confetti(ct.g, new THREE.Vector3(0, 9, 2)); ct.crowd.forEach((c, i) => setTimeout(() => c.gesture('cheer', 5), i * 60)); wendi.gesture('cheer', 5); bram.gesture('cheer', 4); bram.faceTo(0, 8); wendi.faceTo(0, 8); E.camTo([0.5, 3.4, -3.2], [0, 1.4, 4.5], 1.4); }, 800); },
       calm: () => { camHakim(); return 'cam'; },
@@ -300,7 +303,6 @@ async function trial() {
     const b0 = ct.bench.position.y, h0 = hakim.root.position.y;
     E.tween(2.2, e => { ct.bench.position.y = b0 + e * 1.4; hakim.root.position.y = h0 + e * 1.4; });
     E.camTo([0, 6, 7], [0, 9, -8], 2.2);
-    setTimeout(() => { audio.sfx('thunder', 0.8); E.shake(0.1, 0.6); }, 1400);
   };
   await play(S.COURT_OPEN, ctx);
   // penyerahan berkas
@@ -318,13 +320,6 @@ async function trial() {
     if (p.type === 'arsitek') { arsitek++; await ct.setNeedle(arsitek); ct.g.userData.tilt = -0.06 * arsitek / 5; } else await ct.wobble();
     const rr = S.REACT[p.type][rc[p.type]++ % 3];
     await play([rr], ctx);
-  }
-  // juru bicara (putaran 2)
-  if (ui.pool.length > 0 && ui.pool.length < 5) {
-    await play([S.SPOKES[0]], ctx);
-    E.camTo([0.5, 3.0, -2.8], [0, 1.5, 4.5], 1.0);
-    await ui.spokes();
-    await play([S.SPOKES[1]], ctx);
   }
   const verdict = S.verdictFor(arsitek);
   await play(S.DELIB, ctx);

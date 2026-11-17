@@ -74,7 +74,7 @@ export const E = {
     if (opt.outward) { const a = c.root.position.x + right.x * side, b = c.root.position.x - right.x * side; if (Math.abs(b) > Math.abs(a)) side = -side; }
     const pos = c.root.position.clone().addScaledVector(fwd, dist).addScaledVector(right, side * dist * 0.5);
     pos.y = headY + h + (opt.up ?? 0);
-    const look = c.root.position.clone(); look.y = headY - 0.08;
+    const look = c.root.position.clone(); look.y = headY - (c.isGLB ? 0.2 : 0.08);
     if (opt.cut) return this.cut(pos.toArray(), look.toArray());
     return this.camTo(pos.toArray(), look.toArray(), opt.d ?? 0.7);
   },
